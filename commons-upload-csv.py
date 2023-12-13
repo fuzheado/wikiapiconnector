@@ -15,7 +15,7 @@ import argparse
 from typing import Optional, List, Tuple
 from pywikibot.specialbots import UploadRobot
 
-# Configure your Pywikibot
+# Configure Pywikibot
 from pywikibot import config
 config.usernames['commons']['commons'] = 'Fuzheado'
 
