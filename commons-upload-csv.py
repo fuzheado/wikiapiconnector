@@ -13,6 +13,7 @@ import csv
 import argparse
 from io import BytesIO
 from typing import Optional, List, Tuple
+from pywikibot.specialbots import UploadRobot
 
 # Configure your Pywikibot
 from pywikibot import config
@@ -29,19 +30,19 @@ def download_image(url: str) -> Optional[BytesIO]:
         return None
 
 def file_exists_on_commons(image_data: BytesIO, filename: str) -> bool:
-    """Check if the file already exists on Wikimedia Commons."""
+    """Check if the file already exists on Wikimedia Commons using SHA1 hash."""
     site = pywikibot.Site('commons', 'commons')
-    md5_hash = hashlib.md5(image_data.getvalue()).hexdigest()
-    return any(page.exists() for page in site.allimages(sha1=md5_hash))
+    sha1_hash = hashlib.sha1(image_data.getvalue()).hexdigest()
+    return any(page.exists() for page in site.allimages(sha1=sha1_hash))
 
 def upload_to_commons(image_data: BytesIO, filename: str, description: str) -> None:
     """Upload the file to Wikimedia Commons."""
     site = pywikibot.Site('commons', 'commons')
-    page = pywikibot.FilePage(site, filename)
-    page.text = description
-    pywikibot.upload.upload_file(page, source_filename=filename, 
-                                 source_stream=image_data, 
-                                 ignore_warnings=True)
+    file_page = pywikibot.FilePage(site, 'File:' + filename)  # Create a new file page
+    file_page.text = description
+
+    # Upload the image
+    pywikibot.upload.upload(image_data, file_page, comment=description, ignore_warnings=True)
 
 def process_csv(csv_file: str) -> None:
     """Process each row of the CSV file and upload images."""
