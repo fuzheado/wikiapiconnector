@@ -19,6 +19,36 @@ from pywikibot.specialbots import UploadRobot
 from pywikibot import config
 config.usernames['commons']['commons'] = 'Fuzheado'
 
+def get_final_url(url: str, max_redirects: int = 10, current_redirects: int = 0) -> Optional[str]:
+    """
+    Get the final URL after following redirects up to a specified maximum number.
+
+    This function sends an HTTP GET request to the provided URL and follows redirects
+    until the final URL is reached or the maximum number of redirects is exceeded.
+    """
+    try:
+        if current_redirects >= max_redirects:
+            return None
+
+        response = requests.get(url, allow_redirects=False)
+        status_code = response.status_code
+
+        # print ('Status code: ', status_code)
+        if status_code == 200:
+            return url
+        elif status_code in [301, 302, 307, 308]:
+            redirected_url = response.headers.get("Location")
+            if redirected_url:
+                return get_final_url(redirected_url, max_redirects, current_redirects + 1)
+            else:
+                return None
+        else:
+            return None  # Handle other status codes as needed
+
+    except requests.RequestException as e:
+        return None
+
+
 def download_image(url: str) -> Optional[BytesIO]:
     """Download the image from the URL and return it as a BytesIO object."""
     try:
@@ -35,14 +65,20 @@ def file_exists_on_commons(image_data: BytesIO, filename: str) -> bool:
     sha1_hash = hashlib.sha1(image_data.getvalue()).hexdigest()
     return any(page.exists() for page in site.allimages(sha1=sha1_hash))
 
-def upload_to_commons(image_data: BytesIO, filename: str, description: str) -> None:
-    """Upload the file to Wikimedia Commons."""
+def upload_to_commons(url: str, filename: str, description: str) -> None:
+    """Upload the file to Wikimedia Commons using UploadRobot."""
     site = pywikibot.Site('commons', 'commons')
-    file_page = pywikibot.FilePage(site, 'File:' + filename)  # Create a new file page
-    file_page.text = description
 
-    # Upload the image
-    pywikibot.upload.upload(image_data, file_page, comment=description, ignore_warnings=True)
+    # See this example for more parameters -
+    # https://doc.wikimedia.org/pywikibot/master/_modules/scripts/upload.html
+    expanded_url = get_final_url(url)
+    upload_bot = UploadRobot(url=expanded_url,
+                             description=description,
+                             use_filename=filename,
+                             keep_filename=True,
+                             verify_description=False,
+                             target_site=site)
+    upload_bot.run()
 
 def process_csv(csv_file: str) -> None:
     """Process each row of the CSV file and upload images."""
@@ -54,7 +90,7 @@ def process_csv(csv_file: str) -> None:
             print (f"Processing {record_id}")
             image_data = download_image(url)
             if image_data and not file_exists_on_commons(image_data, filename):
-                upload_to_commons(image_data, filename, description)
+                upload_to_commons(url, filename, description)
                 print(f"Uploaded {filename} to Wikimedia Commons.")
             else:
                 print(f"File {filename} already exists on Wikimedia Commons or download failed.")
@@ -67,7 +103,7 @@ def process_csv_data(csv_data: List[List[str]]) -> None:
         print (f"Processing {record_id}")
         image_data = download_image(url)
         if image_data and not file_exists_on_commons(image_data, filename):
-            upload_to_commons(image_data, filename, description)
+            upload_to_commons(url, filename, description)
             print(f"Uploaded {filename} to Wikimedia Commons.")
         else:
             print(f"File {filename} already exists on Wikimedia Commons or download failed.")
