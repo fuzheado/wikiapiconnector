@@ -12,8 +12,15 @@ import hashlib
 import pywikibot
 import csv
 import argparse
+import logging
+
+from urllib.parse import urlparse
 from typing import Optional, List, Tuple
 from pywikibot.specialbots import UploadRobot
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)  # Adjust the logging level as needed
+logger = logging.getLogger(__name__)
 
 # Configure Pywikibot
 from pywikibot import config
@@ -48,9 +55,22 @@ def get_final_url(url: str, max_redirects: int = 10, current_redirects: int = 0)
     except requests.RequestException as e:
         return None
 
+def is_valid_url(url: str) -> bool:
+    """Check if the URL is well-formed."""
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])  # Check if scheme and netloc (domain) are present
+    except ValueError:
+        return False
 
 def download_image(url: str, filename: str) -> Optional[str]:
     """Download the image from the URL and save it as the given filename."""
+    if not url:
+        logger.info("URL is empty or None. Skipping.")
+        return None        
+    if not is_valid_url(url):
+        logger.error("Invalid URL: ", url)
+        return None
     try:
         response = requests.get(url, allow_redirects=True, timeout=10)
         response.raise_for_status()
@@ -58,7 +78,7 @@ def download_image(url: str, filename: str) -> Optional[str]:
             f.write(response.content)
         return filename
     except requests.RequestException as e:
-        print(f"Error occurred while downloading the image: {e}")
+        logger.error(f"Error occurred while downloading the image: {e}")
         return None
 
 def file_exists_on_commons(filename: str) -> bool:
