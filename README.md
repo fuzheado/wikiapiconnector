@@ -43,7 +43,7 @@ wikiapiconnector-generator.py
     -c config-smithsonian.yml 
     -u "Smithsonian National Museum of Natural History" 
     -i kelantan.txt 
-    -o kelantan-csv.txt
+    -o kelantan.csv
 
 commons-upload-csv.py
     kelantan.csv 
