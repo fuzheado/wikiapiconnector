@@ -1,6 +1,6 @@
 # Wiki API Connector
 
-This project is designed to provide a quick way to transfer image files from one repository (typically a museum/library/archive GLAM institution) to Wikimedia Commons.
+This project is designed to provide a quick way to transfer image files from one repository (typically a museum/library/archive GLAM institution) to Wikimedia Commons and to work at scale.
 
 ## Problem
 Donating an image (or set of images) to Wikimedia Commons is usually a cumbersome process:
