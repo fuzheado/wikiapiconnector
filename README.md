@@ -15,9 +15,9 @@ Today, for the nontechnical, the tools used include Google Sheets, Microsoft Exc
 
 This proof of concept focuses on the needs of the Smithsonian Institution, and consists of three utilities:
 
-Search url (str)
-|
- . si-collections-search-dumper.py (scrape of collections.si.edu)
+ Search url (str)
+ |
+  . si-collections-search-dumper.py (scrape of collections.si.edu)
 |
 List of identifiers (list)
 |
