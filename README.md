@@ -3,11 +3,11 @@
 This project is designed to provide a quick way to transfer image files from one repository (typically a museum/library/archive GLAM institution) to Wikimedia Commons and to work at scale.
 
 ## Problem
-Donating an image (or set of images) to Wikimedia Commons is usually a cumbersome process:
-* Metadata and modeling - It requires a deep understanding of the metadata of the data set, and the particular way a 
-* Wikimedia experience - Users need to know quite a bit about Wikimedia templates, copyright, categories, and file naming.
-* Working at scale - Even if one image can be uploaded, scaling it to dozens or hundreds of images is harda
-* Technical - This usually requires quite a bit of technical expertise in scripting with Python or other tools
+Donating an image (or set of images) to Wikimedia Commons is often a cumbersome process for a number of reasons:
+* Metadata and modeling - It requires a deep understanding of the metadata of the data set, which may work for a one-time upload. However, it would be nice to make capture this process for future use. Spreadsheet tools such as OpenRefine and Google Sheets may help for one session, but they usually are not useful for long-term repeated use.
+* Wikimedia experience - Users need to know quite a bit about Wikimedia templates, copyright, categories, and file naming before they can contribute.
+* Working at scale - Even if one image can be uploaded, scaling it to dozens or hundreds of images is hard.
+* Technical - Supporting an upload of large size and complexity requires quite a bit of technical expertise in scripting with Python or other tools.
 
 Today, for the nontechnical, the tools used include Google Sheets, Microsoft Excel, and/or Pattypan.
 
