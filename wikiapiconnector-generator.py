@@ -124,7 +124,7 @@ class SIunit:
     spec: dict = None  # Specification dictionary, as brought in by a YAML file or the like
 
     def __post_init__(self):
-        requests_cache.install_cache('siapi_cache', backend='sqlite', expire_after=60)
+        requests_cache.install_cache('siapi_cache', backend='sqlite', expire_after=86400)
 
     def to_dict(self):
         return dict(self.spec)
@@ -989,7 +989,7 @@ def main():
 if __name__ == "__main__":
 
     # Install a cache for faster testing
-    requests_cache.install_cache('si_scraper_cache')
+    # requests_cache.install_cache('si_scraper_cache')
     
     # Set debugging level
     logging.getLogger().setLevel(logging.INFO)

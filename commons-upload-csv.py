@@ -13,6 +13,7 @@ import pywikibot
 import csv
 import argparse
 import logging
+import tqdm
 
 from urllib.parse import urlparse
 from typing import Optional, List, Tuple
@@ -66,7 +67,7 @@ def is_valid_url(url: str) -> bool:
 def download_image(url: str, filename: str) -> Optional[str]:
     """Download the image from the URL and save it as the given filename."""
     if not url:
-        logger.info("URL is empty or None. Skipping.")
+        logger.debug("URL is empty or None. Skipping.")
         return None        
     if not is_valid_url(url):
         logger.error("Invalid URL: ", url)
@@ -92,7 +93,7 @@ def upload_to_commons(filepath: str, filename: str, description: str, edit_summa
     Upload the file to Wikimedia Commons using UploadRobot.
     """
     if not filepath:
-        logger.info(f"Missing filepath, skipping")
+        logger.debug(f"Missing filepath, skipping")
         return
 
     # TODO: Don't open a site each time, pass it in via parameter
@@ -101,6 +102,7 @@ def upload_to_commons(filepath: str, filename: str, description: str, edit_summa
     with open('/dev/null', 'w') as f:
         # UploadRobot is noisy, and I cannot shut off its description output, so this is a fix
         sys.stdout = f
+        sys.stderr = f
 
         upload_bot = UploadRobot([filepath],
                                  description=description,
@@ -113,6 +115,7 @@ def upload_to_commons(filepath: str, filename: str, description: str, edit_summa
 
     # Reset standard output
     sys.stdout = sys.__stdout__    
+    sys.stderr = sys.__stderr__    
 
 def process_csv(csv_file: str) -> None:
     """
@@ -121,17 +124,25 @@ def process_csv(csv_file: str) -> None:
     with open(csv_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
         next(reader)  # Skip the header row
-        for row in reader:
-            record_id, url, filename, edit_summary, description = row
-            logger.info(f"Processing {record_id}")
-            filepath = download_image(url, filename)
-            if filepath and not file_exists_on_commons(filepath):
-                upload_to_commons(filepath, filename, description, edit_summary)
-                logger.info(f"Uploaded {filename} to Wikimedia Commons.")
-            else:
-                logger.info(f"File {filename} already exists on Wikimedia Commons or download failed.")
-            if filepath and os.path.exists(filepath):
-                os.remove(filepath)
+        with tqdm.tqdm(reader, unit='record') as pbar:
+            for row in pbar:
+                record_id, url, filename, edit_summary, description = row
+                pbar.set_description(f"Processing {record_id}")
+    
+                # Check if url or filename is None or empty
+                if not url or not filename:
+                    pbar.set_description(f"Skipping, empty URL or filename")
+                    logger.debug(f"Skipping record {record_id} due to missing url or filename.")
+                    continue  # Skip this record and move to the next one
+        
+                filepath = download_image(url, filename)
+                if filepath and not file_exists_on_commons(filepath):
+                    upload_to_commons(filepath, filename, description, edit_summary)
+                    pbar.set_description(f"Uploaded {filename} to Wikimedia Commons.")
+                else:
+                    pbar.set_description(f"File {filename} already exists on Wikimedia Commons or download failed.")
+                if filepath and os.path.exists(filepath):
+                    os.remove(filepath)
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Upload images to Wikimedia Commons from a CSV file.")
