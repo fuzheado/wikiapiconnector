@@ -88,31 +88,48 @@ def file_exists_on_commons(filename: str) -> bool:
     return any(page.exists() for page in site.allimages(sha1=sha1_hash))
 
 def upload_to_commons(filepath: str, filename: str, description: str, edit_summary: str) -> None:
-    """Upload the file to Wikimedia Commons using UploadRobot."""
+    """
+    Upload the file to Wikimedia Commons using UploadRobot.
+    """
+    if not filepath:
+        logger.info(f"Missing filepath, skipping")
+        return
+
+    # TODO: Don't open a site each time, pass it in via parameter
     site = pywikibot.Site('commons', 'commons')
-    upload_bot = UploadRobot([filepath],
-                             description=description,
-                             use_filename=filename,
-                             keep_filename=True,
-                             verify_description=False,
-                             summary=edit_summary,
-                             target_site=site)
-    upload_bot.run()
+
+    with open('/dev/null', 'w') as f:
+        # UploadRobot is noisy, and I cannot shut off its description output, so this is a fix
+        sys.stdout = f
+
+        upload_bot = UploadRobot([filepath],
+                                 description=description,
+                                 use_filename=filename,
+                                 keep_filename=True,
+                                 verify_description=False,
+                                 summary=edit_summary,
+                                 target_site=site)
+        upload_bot.run()
+
+    # Reset standard output
+    sys.stdout = sys.__stdout__    
 
 def process_csv(csv_file: str) -> None:
-    """Process each row of the CSV file and upload images."""
+    """
+    Process each row of the CSV file and upload images.
+    """
     with open(csv_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
         next(reader)  # Skip the header row
         for row in reader:
             record_id, url, filename, edit_summary, description = row
-            print (f"Processing {record_id}")
+            logger.info(f"Processing {record_id}")
             filepath = download_image(url, filename)
             if filepath and not file_exists_on_commons(filepath):
                 upload_to_commons(filepath, filename, description, edit_summary)
-                print(f"Uploaded {filename} to Wikimedia Commons.")
+                logger.info(f"Uploaded {filename} to Wikimedia Commons.")
             else:
-                print(f"File {filename} already exists on Wikimedia Commons or download failed.")
+                logger.info(f"File {filename} already exists on Wikimedia Commons or download failed.")
             if filepath and os.path.exists(filepath):
                 os.remove(filepath)
 
