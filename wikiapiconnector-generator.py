@@ -318,6 +318,28 @@ class SIunit:
         elif _result.status_code == 404:
             logging.error ('%s, status code %s' % (incoming_id, _result.status_code))
             return None
+        elif _result.status_code == 429:
+            logging.info ("HTTP 429 - Too Many Requests")
+        
+            # Check if the response contains rate limiting headers
+            if 'Retry-After' in _result.headers:
+                retry_after = _result.headers['Retry-After']
+                logging.info(f"Retry-After header: {retry_after} seconds")
+        
+            if 'X-RateLimit-Limit' in _result.headers:
+                limit = _result.headers['X-RateLimit-Limit']
+                logging.info(f"Rate Limit: {limit} requests per minute")
+        
+            if 'X-RateLimit-Remaining' in _result.headers:
+                remaining = _result.headers['X-RateLimit-Remaining']
+                logging.info(f"Remaining Requests: {remaining}")
+        
+            if 'X-RateLimit-Reset' in _result.headers:
+                reset_time = _result.headers['X-RateLimit-Reset']
+                logging.info(f"Rate Limit Reset Time: {reset_time}")
+                
+            raise ValueError('%s, status code %s' % (incoming_id, _result.status_code))
+
         else:
             raise ValueError('%s, status code %s' % (incoming_id, _result.status_code))
 
