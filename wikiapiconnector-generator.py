@@ -261,6 +261,39 @@ class SIunit:
 
         return _return_list
 
+    @staticmethod
+    def sanitize_filename(filename: str) -> str:
+        """
+        Wikimedia Commons does not allow certain characters for filenames, so make the incoming name safe
+        """
+        # Define a mapping of forbidden characters and their alternatives
+        char_mapping = {
+            '#': '___',
+            '<': '(',
+            '>': ')',
+            '[': '(',
+            ']': ')',
+            '|': '___',
+            ':': '___',
+            '{': '(',
+            '}': ')',
+            '/': '___',
+            '.': '_',
+        }
+    
+        # Replace forbidden characters with their alternatives
+        sanitized_filename = filename
+        for char, replacement in char_mapping.items():
+            sanitized_filename = sanitized_filename.replace(char, replacement)
+    
+        # Replace sequences of tilde characters (~) with a single underscore (_)
+        sanitized_filename = re.sub(r'~+', '_', sanitized_filename)
+    
+        # Remove leading underscores (if any)
+        sanitized_filename = sanitized_filename.lstrip('_')
+    
+        return sanitized_filename
+
     def api_template(self) -> str:
         '''
         Return template for API call
@@ -287,6 +320,57 @@ class SIunit:
             return None
         else:
             raise ValueError('%s, status code %s' % (incoming_id, _result.status_code))
+
+    @staticmethod
+    def validate_filename_parameters(input_string: str) -> bool:
+        """
+        Validate whether the input string has the right words
+        """
+        # Split the input string into words using comma and space as separators
+        words = input_string.split(", ")
+    
+        # Define a set of valid names
+        valid_names = {"title", "identifier", "basefilename"}
+    
+        # Check if all words are valid names
+        for word in words:
+            if word.lower() not in valid_names:
+                return False
+    
+        return True
+
+    @staticmethod
+    def generate_commons_filename(
+        title: str,
+        identifier: str,
+        basefilename: str,
+        order: list[str] = ['title', 'identifier', 'basefilename'],
+        extension: str = "jpg") -> str:
+        """
+        Take in the parameters and the order defined by a list, to generate a Commons filename such as:
+        "Guernica saam 1941.1.2 IMG1234.jpg"
+        """
+        # Create a dictionary to map variable names to their values
+        variables = {
+            "title": title,
+            "identifier": identifier,
+            "basefilename": basefilename,
+        }
+    
+        # Initialize an empty list to store the selected values
+        selected_values = []
+    
+        # Iterate through the order list and append the corresponding values
+        for item in order:
+            selected_values.append(variables.get(item, ""))
+    
+        # Join the selected values into a single string
+        combined_string = " ".join(selected_values)
+
+        # Append the extension to the combined string
+        combined_string += '.' + extension
+    
+        return combined_string
     
     def fill_wiki_template(self, wiki_template: str, field_dict: dict) -> str:
         '''
@@ -543,8 +627,12 @@ class SIunit:
                 _return_dict['url'] = None
     
             # Set the Commons template filled out
-            # TODO: need to requests get this from the URL
-            _filled_template = self.fill_wiki_template(commons_templates['Information'], _object_dict)
+            # Grab this from config file
+            commons_template_type = self.spec['commons_template']['type']
+            # TODO: May want to download directly from Commons in the future
+            commons_template_skeleton = commons_templates[commons_template_type]
+            _filled_template = self.fill_wiki_template(commons_template_skeleton, _object_dict)
+
             if _filled_template:
                 _return_dict['template'] = _filled_template
             else:
@@ -637,11 +725,30 @@ class SIunit:
             #TODO handle case of None for basefilename
             if item['url']:
                 csv_entry['source_image_url'] = item['url']
+
+                # If https://ids.si.edu..../SAAM-1234.jpg
+                #   Extract: SAAM-1234
+                logging.debug('url: ', item['url'])
                 basefilename = extract_filename_without_extension(item['url'])
                 logging.debug('basefilename: ', basefilename)
 
-                # TODO: Format should come from the definition file
-                csv_entry['commons_filename'] = '{}_{}_{}.jpg'.format(item['title'], identifier, basefilename)
+                # Clean title for Commons compliance
+                # Remove # < > [ ] | : { } / . and sequences of tilde characters (~~~)
+                if item['title']:
+                    title = SIunit.sanitize_filename(item['title'])
+                else:
+                    title = 'Unknown'
+                
+                # Grab commons_filename_format parameter from YAML
+                # Valid values title, identifier, basename
+                commons_filename_format = self.spec['commons_template']['commons_filename_format']
+
+                # Validate the commons_filename_format                
+                commons_filename_order = [word.strip() for word in commons_filename_format.split(",")]
+
+                csv_entry['commons_filename'] = SIunit.generate_commons_filename (title, identifier, basefilename, commons_filename_order, 'jpg')
+
+                # csv_entry['commons_filename'] = '{}_{}_{}.jpg'.format(title, identifier, basefilename)
             else:
                 logging.debug('Warning, no URL found at API')
                 csv_entry['source_image_url'] = ''
@@ -885,7 +992,7 @@ if __name__ == "__main__":
     requests_cache.install_cache('si_scraper_cache')
     
     # Set debugging level
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.DEBUG)
 
     # run_test()
     # run_test_saam()
