@@ -992,7 +992,7 @@ if __name__ == "__main__":
     requests_cache.install_cache('si_scraper_cache')
     
     # Set debugging level
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
 
     # run_test()
     # run_test_saam()
