@@ -124,8 +124,10 @@ def process_csv(csv_file: str) -> None:
     with open(csv_file, 'r', newline='', encoding='utf-8') as file:
         reader = csv.reader(file)
         next(reader)  # Skip the header row
-        with tqdm.tqdm(reader, unit='record') as pbar:
-            for row in pbar:
+        with tqdm.tqdm(total=len(list(reader)), unit='record') as pbar:
+            file.seek(0)  # Reset the file pointer to the beginning
+            next(reader)  # Skip the header row again
+            for row in reader:
                 record_id, url, filename, edit_summary, description = row
                 pbar.set_description(f"Processing {record_id}")
     
@@ -143,6 +145,7 @@ def process_csv(csv_file: str) -> None:
                     pbar.set_description(f"File {filename} already exists on Wikimedia Commons or download failed.")
                 if filepath and os.path.exists(filepath):
                     os.remove(filepath)
+                pbar.update(1) 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Upload images to Wikimedia Commons from a CSV file.")
