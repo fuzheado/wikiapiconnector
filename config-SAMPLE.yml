@@ -7,14 +7,15 @@ units:
             api_url: https://api.si.edu/openaccess/api/v1.0/content/edanmdm:{}?api_key={}
             api_key: true
             api_key_info: https://api.data.gov/signup/
-            api_key_string: INVALID-SIGNUP-AT-LINK-ABOVE
+            api_key_string: ADDSECRETHERE
             fields: [identifier, api_key_string]
         generic:
             permission: 
                 jsonpath: $.response.content.descriptiveNonRepeating.metadata_usage.access
                 values: [CC0]
         commons_template: 
-            url: https://commons.wikimedia.org/wiki/Template:Information
+#            url: https://commons.wikimedia.org/wiki/Template:Information
+            type: Information
             selector_path: [jsonpath, static, append]
             crosswalk: # Hard mappings
                 permission:
@@ -24,6 +25,7 @@ units:
                         Specimen: Specimen in the Smithsonian NMNH
             categories: "[[Category:Collections of the National Museum of Natural History, United States]] [[Category:Flora of Borneo]]"
             append: "{{Uploaded with Wiki API Connector}}" # Append to all uploads, template or otherwise
+            commons_filename_format: "title, identifier, basefilename"
             fields:
                 _image:
                     jsonpath: $.response.content.descriptiveNonRepeating.online_media.media[*].resources[?(@.label == 'High-resolution JPEG')].url
@@ -76,14 +78,15 @@ units:
             api_url: https://api.si.edu/openaccess/api/v1.0/content/edanmdm:{}?api_key={}
             api_key: true
             api_key_info: https://api.data.gov/signup/
-            api_key_string: INVALID-SIGNUP-AT-LINK-ABOVE
+            api_key_string: ADDSECRETHERE
             fields: [identifier, api_key_string]
         generic:
             permission: 
                 jsonpath: $.response.content.descriptiveNonRepeating.metadata_usage.access
                 values: [CC0]
         commons_template: 
-            url: https://commons.wikimedia.org/wiki/Template:Artwork
+#            url: https://commons.wikimedia.org/wiki/Template:Artwork
+            type: Artwork
             selector_path: [jsonpath, static, append]
             crosswalk: # Hard mappings
                 permission:
@@ -94,6 +97,7 @@ units:
                         Sculpture (visual work): Sculptures in the Smithsonian American Art Museum
             categories: "[[Category:Collections of the Smithsonian American Art Museum]]"
             append: "{{Uploaded with Wiki API Connector}}" # Append to all uploads, template or otherwise
+            commons_filename_format: "title, basefilename"
             fields:
                 _image:
                     jsonpath: $.response.content.descriptiveNonRepeating.online_media.media[*].resources[?(@.label == 'High-resolution JPEG')].url
@@ -108,7 +112,7 @@ units:
                 object type: 
                     jsonpath: $.response.content.indexedStructured.object_type[*]
                 description:
-                    static: "object from the Smithsonian American Art Museum"
+                    jsonpath: "'Smithsonian '+$.response.content.freetext.dataSource[?(@.label == 'Data Source')].content+'\n\nName: '+$.response.title+'\n\nDepartment: '+$.response.content.freetext.setName[?(@.label == 'Department')].content+'\n\nCredit line: '+$.response.content.freetext.creditLine[?(@.label == 'Credit Line')].content+'\n\nDimensions: '+$.response.content.freetext.physicalDescription[?(@.label == 'Dimensions')].content+'\n\nMedium: '+$.response.content.freetext.physicalDescription[?(@.label == 'Medium')].content+'\n\nDate: '+$.response.content.freetext.date[?(@.label == 'Date')].content+'\n\nSmithsonian record ID: '+$.response.content.descriptiveNonRepeating.record_ID+'\n\nRecord link: '+'https://collections.si.edu/search/detail/'+$.response.url"
                 date:
                     jsonpath: $.response.content.freetext.date[?(@.label == 'Date')].content
                 medium: 
