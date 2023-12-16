@@ -362,6 +362,23 @@ class SIunit:
         return True
 
     @staticmethod
+    def limit_string_length(input_string, max_length=32):
+        """
+        Limit the length of the input string to a maximum length.
+        
+        Args:
+            input_string (str): The input string to be limited.
+            max_length (int): The maximum allowed length of the string. Default is 32.
+    
+        Returns:
+            str: The input string limited to the maximum length.
+        """
+        if len(input_string) > max_length:
+            return input_string[:max_length]
+        else:
+            return input_string    
+            
+    @staticmethod
     def generate_commons_filename(
         title: str,
         identifier: str,
@@ -374,7 +391,7 @@ class SIunit:
         """
         # Create a dictionary to map variable names to their values
         variables = {
-            "title": title,
+            "title": SIunit.limit_string_length(title, 64),
             "identifier": identifier,
             "basefilename": basefilename,
         }
@@ -741,9 +758,6 @@ class SIunit:
             # TODO - fix this for the CSV so filename is more meaningful
             # original_title = SIunit.extract_template_field(item['template'], 'title')
 
-            # TODO - replace characters that Commons doesn't like
-            # commons_title = original_title.replace('[','(').replace(']',')')
-
             #TODO handle case of None for basefilename
             if item['url']:
                 csv_entry['source_image_url'] = item['url']
@@ -770,15 +784,18 @@ class SIunit:
 
                 csv_entry['commons_filename'] = SIunit.generate_commons_filename (title, identifier, basefilename, commons_filename_order, 'jpg')
 
+                default_edit_summary = 'Uploaded by Wiki API Connector'
+
+                # Try to get 'edit_summary' from 'self.spec', else use default
+                csv_entry['edit_summary'] = self.spec.get('generic', {}).get('edit_summary', default_edit_summary)
+            
                 # csv_entry['commons_filename'] = '{}_{}_{}.jpg'.format(title, identifier, basefilename)
             else:
                 logging.debug('Warning, no URL found at API')
                 csv_entry['source_image_url'] = ''
                 csv_entry['commons_filename'] = ''
-
-            # TODO: Grab this from config file
-            csv_entry['edit_summary'] = 'Uploaded by Wiki API Connector'
-            csv_entry['description'] = item['template']
+                csv_entry['edit_summary'] = ''
+                csv_entry['description'] = ''
 
             # Convert dictionary values to CSV format
             csv_values.append(csv_entry)
