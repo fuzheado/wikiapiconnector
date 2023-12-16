@@ -101,9 +101,10 @@ def upload_to_commons(filepath: str, filename: str, description: str, edit_summa
 
     with open('/dev/null', 'w') as f:
         # UploadRobot is noisy, and I cannot shut off its description output, so this is a fix
-        sys.stdout = f
-        sys.stderr = f
+        # sys.stdout = f
+        # sys.stderr = f
 
+        # When always is set to True, ignore_warning or aborts must be set to True.
         upload_bot = UploadRobot([filepath],
                                  description=description,
                                  use_filename=filename,
