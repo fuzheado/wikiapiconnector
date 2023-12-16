@@ -361,25 +361,31 @@ class SIunit:
     
         return True
 
-    @staticmethod
-    def limit_string_length(input_string, max_length=32):
+    def limit_string_length(self, input_string: str, max_length: int = 64) -> str:
         """
-        Limit the length of the input string to a maximum length.
-        
-        Args:
-            input_string (str): The input string to be limited.
-            max_length (int): The maximum allowed length of the string. Default is 32.
+        Returns a shortened string, with asbolute length max_length
+        but only on a word boundary (ie. not cut off a word)
+        """
+        # Try to get 'edit_summary' from 'self.spec', else use default
+        max_length = int(self.spec.get('generic', {}).get('max_title_length', max_length))
+
+        # Check if the string is longer than max_length
+        if len(input_string) <= max_length:
+            return input_string
     
-        Returns:
-            str: The input string limited to the maximum length.
-        """
-        if len(input_string) > max_length:
-            return input_string[:max_length]
-        else:
-            return input_string    
+        # Find the last complete word before the limit
+        trimmed_string = input_string[:max_length]
+        last_space = trimmed_string.rfind(' ')
+    
+        # If there is no space, return the whole string up to max_length
+        if last_space == -1:
+            return trimmed_string
+    
+        # Return the string up to the last space
+        return trimmed_string[:last_space]
             
-    @staticmethod
     def generate_commons_filename(
+        self,
         title: str,
         identifier: str,
         basefilename: str,
@@ -391,7 +397,7 @@ class SIunit:
         """
         # Create a dictionary to map variable names to their values
         variables = {
-            "title": SIunit.limit_string_length(title, 64),
+            "title": self.limit_string_length(title),
             "identifier": identifier,
             "basefilename": basefilename,
         }
@@ -777,12 +783,13 @@ class SIunit:
                 
                 # Grab commons_filename_format parameter from YAML
                 # Valid values title, identifier, basename
+                # TODO: Need some validation and sanity checking
                 commons_filename_format = self.spec['commons_template']['commons_filename_format']
 
                 # Validate the commons_filename_format                
                 commons_filename_order = [word.strip() for word in commons_filename_format.split(",")]
 
-                csv_entry['commons_filename'] = SIunit.generate_commons_filename (title, identifier, basefilename, commons_filename_order, 'jpg')
+                csv_entry['commons_filename'] = self.generate_commons_filename (title, identifier, basefilename, commons_filename_order, 'jpg')
 
                 default_edit_summary = 'Uploaded by Wiki API Connector'
 
