@@ -111,7 +111,10 @@ def upload_to_commons(filepath: str, filename: str, description: str, edit_summa
                                  keep_filename=True,
                                  verify_description=False,
                                  summary=edit_summary,
-                                 target_site=site)
+                                 target_site=site,
+                                 always=True,
+                                 aborts=True   # Alternative is to set ignore_warning=True,
+                                 )
         upload_bot.run()
 
     # Reset standard output

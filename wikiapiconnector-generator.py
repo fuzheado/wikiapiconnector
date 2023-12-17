@@ -20,6 +20,7 @@ import json
 import re
 import os
 import sys
+import time
 from urllib.parse import urlparse, parse_qs
 from io import StringIO
 import csv
@@ -629,7 +630,7 @@ class SIunit:
         
         Parameters
         ----------
-        incmong_id: identifier
+        incoming_id: identifier
         format: 
           commons_template is usually desired, otherwise 
           commons_wikibase is for SDC
@@ -791,12 +792,13 @@ class SIunit:
 
                 csv_entry['commons_filename'] = self.generate_commons_filename (title, identifier, basefilename, commons_filename_order, 'jpg')
 
+                # Try to get 'edit_summary' from 'self.spec', else use default
                 default_edit_summary = 'Uploaded by Wiki API Connector'
 
-                # Try to get 'edit_summary' from 'self.spec', else use default
                 csv_entry['edit_summary'] = self.spec.get('generic', {}).get('edit_summary', default_edit_summary)
-            
-                # csv_entry['commons_filename'] = '{}_{}_{}.jpg'.format(title, identifier, basefilename)
+
+                csv_entry['description'] = item['template']
+                
             else:
                 logging.debug('Warning, no URL found at API')
                 csv_entry['source_image_url'] = ''
@@ -951,8 +953,8 @@ def run_test() -> None:
 
 def process_identifiers(identifiers, config_file, unit_string, output_file) -> None:
     # Your processing logic goes here
-    logging.info(f"Configuration file: {config_file}\n")
-    logging.info(f"Unit string: {unit_string}\n")
+    logging.info(f"Configuration file: {config_file}")
+    logging.info(f"Unit string: {unit_string}")
 
     si_unit = SIunit.from_yaml(config_file, unit_string)
     if not si_unit:
@@ -963,6 +965,9 @@ def process_identifiers(identifiers, config_file, unit_string, output_file) -> N
     with tqdm(total=len(identifiers), desc="Processing") as pbar:
         for identifier in identifiers:
             logging.debug(f"Processing: {identifier}\n")
+            # Add a delay here so API doesn't lock us out or throttle
+            # TODO - make this a parameter in config file or on command line
+            time.sleep(1)
             csv_entries = si_unit.identifier_to_commons_csv_entry(identifier)
             if not csv_entries:
                 logging.error('No valid identifier_to_commons_csv_entry result for', identifier)

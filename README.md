@@ -35,23 +35,25 @@ Images on Commons
 
 ## Example Run
 
-si-collections-search-dumper.py
+python si-collections-search-dumper.py \
+    -o kelantan.txt \
     "https://collections.si.edu/search/results.htm?media.CC0=true&q=&fq=place%3A%22Malaysia%22&fq=data_source%3A%22NMNH+-+Botany+Dept.%22&fq=place%3A%22Kelantan%22"
-    -o kelantan.txt
 
-wikiapiconnector-generator.py 
-    -c config-smithsonian.yml 
-    -u "Smithsonian National Museum of Natural History" 
-    -i kelantan.txt 
+python wikiapiconnector-generator.py \
+    -c config-smithsonian.yml \
+    -u "Smithsonian National Museum of Natural History" \
+    -i kelantan.txt \
     -o kelantan.csv
 
-commons-upload-csv.py
+python commons-upload-csv.py \
     kelantan.csv 
 
 
 Example searches:
 
 https://collections.si.edu/search/results.htm?media.CC0=true&q=&fq=place%3A%22Malaysia%22&fq=data_source%3A%22NMNH+-+Botany+Dept.%22&fq=place%3A%22Kelantan%22
+
+https://collections.si.edu/search/results.htm?q=&fq=online_visual_material%3Atrue&fq=data_source%3A%22NMNH+-+Botany+Dept.%22&fq=object_type%3A%22Isotypes%22&fq=topic%3A%22Bryopsida%22&media.CC0=true&fq=place:%22Africa%22
 
 ## Contact
 Andrew Lih (User:Fuzheado)
