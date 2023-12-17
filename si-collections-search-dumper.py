@@ -111,7 +111,7 @@ def main():
 
 if __name__ == "__main__":
 
-    requests_cache.install_cache('sicollections_cache', backend='sqlite', expire_after=3600)
+    requests_cache.install_cache('sicollections_cache', backend='sqlite', expire_after=259200) # 3 days
     logging.getLogger().setLevel(logging.INFO)
     main()
 

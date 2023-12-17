@@ -311,39 +311,59 @@ class SIunit:
         Return content from API call
         '''
         _api_url = self.api_template().format(incoming_id)
-
-        _result = requests.get(_api_url)
-        if _result.status_code == 200:
-            _oa_dict = dict(_result.json())
-            return _oa_dict
-        elif _result.status_code == 404:
-            logging.error ('%s, status code %s' % (incoming_id, _result.status_code))
-            return None
-        elif _result.status_code == 429:
-            logging.info ("HTTP 429 - Too Many Requests")
         
-            # Check if the response contains rate limiting headers
-            if 'Retry-After' in _result.headers:
-                retry_after = _result.headers['Retry-After']
-                logging.info(f"Retry-After header: {retry_after} seconds")
-        
-            if 'X-RateLimit-Limit' in _result.headers:
-                limit = _result.headers['X-RateLimit-Limit']
-                logging.info(f"Rate Limit: {limit} requests per minute")
-        
-            if 'X-RateLimit-Remaining' in _result.headers:
-                remaining = _result.headers['X-RateLimit-Remaining']
-                logging.info(f"Remaining Requests: {remaining}")
-        
-            if 'X-RateLimit-Reset' in _result.headers:
-                reset_time = _result.headers['X-RateLimit-Reset']
-                logging.info(f"Rate Limit Reset Time: {reset_time}")
-                
-            raise ValueError('%s, status code %s' % (incoming_id, _result.status_code))
-
-        else:
-            raise ValueError('%s, status code %s' % (incoming_id, _result.status_code))
-
+        retries = 4  # Number of retries allowed
+        retry_delay = 5  # Initial retry delay in seconds
+    
+        while retries > 0:
+            try:
+                _result = requests.get(_api_url)
+    
+                if _result.status_code == 200:
+                    _oa_dict = dict(_result.json())
+                    return _oa_dict
+    
+                elif _result.status_code == 404:
+                    logging.error('%s, status code %s' % (incoming_id, _result.status_code))
+                    return None
+    
+                elif _result.status_code == 429:
+                    logging.info("HTTP 429 - Too Many Requests")
+    
+                    # Check if the response contains rate limiting headers
+                    if 'X-RateLimit-Limit' in _result.headers:
+                        limit = _result.headers['X-RateLimit-Limit']
+                        logging.info(f"Rate Limit: {limit} requests per minute")
+    
+                    if 'X-RateLimit-Remaining' in _result.headers:
+                        remaining = _result.headers['X-RateLimit-Remaining']
+                        logging.info(f"Remaining Requests: {remaining}")
+    
+                    if 'X-RateLimit-Reset' in _result.headers:
+                        reset_time = _result.headers['X-RateLimit-Reset']
+                        logging.info(f"Rate Limit Reset Time: {reset_time}")
+    
+                    if 'Retry-After' in _result.headers:
+                        retry_after = int(_result.headers['Retry-After'])
+                        logging.info(f"Retry-After header: {retry_after} seconds")
+    
+                        # Wait for the specified Retry-After duration
+                        time.sleep(retry_after)
+    
+                    # Decrement the number of retries and increase the retry delay (exponential backoff)
+                    retries -= 1
+                    retry_delay *= 2
+    
+                    # Continue to the next iteration to retry the request
+                    continue
+    
+                else:
+                    raise ValueError('%s, status code %s' % (incoming_id, _result.status_code))
+    
+            except Exception as e:
+                logging.error(f'Error occurred while making API request: {e}')
+                return None
+            
     @staticmethod
     def validate_filename_parameters(input_string: str) -> bool:
         """
@@ -967,7 +987,8 @@ def process_identifiers(identifiers, config_file, unit_string, output_file) -> N
             logging.debug(f"Processing: {identifier}\n")
             # Add a delay here so API doesn't lock us out or throttle
             # TODO - make this a parameter in config file or on command line
-            time.sleep(1)
+            # ON SECOND THOUGHT bad approach as it delays even local cached lookups
+            # time.sleep(1)
             csv_entries = si_unit.identifier_to_commons_csv_entry(identifier)
             if not csv_entries:
                 logging.error('No valid identifier_to_commons_csv_entry result for', identifier)
