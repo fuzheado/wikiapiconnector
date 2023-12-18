@@ -21,6 +21,7 @@ import re
 import os
 import sys
 import time
+from datetime import datetime, timedelta
 from urllib.parse import urlparse, parse_qs
 from io import StringIO
 import csv
@@ -333,7 +334,7 @@ class SIunit:
                     # Check if the response contains rate limiting headers
                     if 'X-RateLimit-Limit' in _result.headers:
                         limit = _result.headers['X-RateLimit-Limit']
-                        logging.info(f"Rate Limit: {limit} requests per minute")
+                        logging.info(f"Rate Limit: {limit} requests per period of time (minute/hour?)")
     
                     if 'X-RateLimit-Remaining' in _result.headers:
                         remaining = _result.headers['X-RateLimit-Remaining']
@@ -347,12 +348,19 @@ class SIunit:
                         retry_after = int(_result.headers['Retry-After'])
                         logging.info(f"Retry-After header: {retry_after} seconds")
     
+                        # Calculate the expected end time of the sleep
+                        current_time = datetime.now()
+                        end_time = current_time + timedelta(seconds=retry_after)
+                        logging.info(f"Sleep start time: {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
+                        logging.info(f"Expected sleep end time: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    
                         # Wait for the specified Retry-After duration
                         time.sleep(retry_after)
     
                     # Decrement the number of retries and increase the retry delay (exponential backoff)
                     retries -= 1
                     retry_delay *= 2
+                    logging.info(f"Retries remaining: {retries}")
     
                     # Continue to the next iteration to retry the request
                     continue
