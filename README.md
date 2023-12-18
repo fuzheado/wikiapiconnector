@@ -4,6 +4,11 @@ This project is designed to provide a quick way to transfer image files from one
 
 This proof of conept is specific to the Smithsonian and Wikimedia Commons files using wikitext. In theory, this same framework could be extended to create Wikidata items, or do Wikibase/Wikidata edits.
 
+A brief description of the problem and solution can be found at this [presentation from WikidataCon and Hack4OpenGLAM](https://docs.google.com/presentation/d/e/2PACX-1vQ9oOHFnTNcB7ox0UDzzsgvhk_R5NF-G5G78o2h2o72tBxLwhBPj7wQq_44u_Z-wZBX49LwNgdDGYy_/pub?start=false&loop=false&delayms=3000)
+
+Examples of uploads using this tool can be found in the catgory:
+* [Category:Wiki_API_Connector_Upload](https://commons.wikimedia.org/wiki/Category:Wiki_API_Connector_Upload)
+
 ## Problem
 Donating an image (or set of images) to Wikimedia Commons is often a cumbersome process for a number of reasons:
 * Metadata and modeling - This requires a deep understanding of the metadata of the data set, which the user typically wants to work with over time. Spreadsheet tools such as OpenRefine and Google Sheets may help for one-time load of data for a given session, but they are usually a poor fit for long-term repeated use, or sharing a best practice with others is difficult.
