@@ -13,7 +13,31 @@ Today, for the nontechnical users, the tools used include Google Sheets, Microso
 
 ## Solution
 
-This proof of concept focuses on the needs of the Smithsonian Institution, and consists of three utilities:
+This proof of concept focuses on the needs of the Smithsonian Institution, and consists of three utilities described below. However, there is a convenience script that encapsulates all the functions into one command line.
+
+### Easy invocation
+The ingestion pipeline can be invoked in one line with the tool "siwikiapiconnect.py" executed with the following parameters:
+
+> python siwikiapiconnect.py \\\
+> -c config.yml \\\
+> -b nmnh-pteridophyte \\\
+> -u "Smithsonian National Museum of Natural History taxonomy" \\\
+> -s "https://collections.si.edu/search/results.htm?q=&fq=online_visual_material%3Atrue&fq=data_source%3A%22NMNH+-+Botany+Dept.%22&fq=object_type%3A%22Isotypes%22&media.CC0=true&fq=tax_class:%22Pteridophyte%22"
+
+"-c" defines a config.yml file that contains the specific info about the institutional unit, the location of their API endpoint, how to map those fields to Wikimedia Commons, and how to format the desired Commons filename. This is by far the hardest part of the process, but once someone has determined these mappings, future users can use this configuration file without needing too know all the details.
+
+"-b" – Defines a basename for all intermediate working files, which consist of <basename>.txt and <basename>.csv files. These are currently kept and not deleted when finished.
+
+"-u" – Specifies the unit in the config.yml file to use as a basis for the uploads. This is a string that should match the one in the config file.
+
+"-s" - Specifies the search URL that results in the listing of objects from the Smithsonian collections search interface. A script uses this URL and scrapes all the relevant Smithsonian resource IDs, which typically consist of unit name and accession number/unique number (e.g. saam_1921.1.1)
+
+The script will kick off each of the scripts described below in succession. The user will see progress bars for each of the tools, showing estimated time remaining for each execution stage. The final stage will show actual uploads to Wikimedia Commons.
+
+By default, the script places all uploads into a category called "Category:Wiki API Connector Upload" in addition to others the user can specify in the YAML file.
+
+
+### Detailed invocation
 
 * __si-collections-search-dumper.py__ (scrape of collections.si.edu)
     * Input: URL of a collections.si.edu search string, producing SERP
