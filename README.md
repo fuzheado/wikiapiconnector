@@ -55,13 +55,6 @@ By default, the script places all uploads into a category called "Category:Wiki 
 
 * Critical files
     * config.yml - YAML file with crosswalk mappings and definition of "units," as in institutional units of a museum and library
- 
-## Caveats
-The examples here use the Smithsonian Institution Open Access API, which is hosted at Data.gov and requires use of an API key. Therefore, the code examples here will not work out of the box. They will require getting an API key (free), or you can find the DEMO_KEY from the Data.gov code examples which are free to use, but have a very low quota.
-
-* See: https://api.data.gov/docs/developer-manual/
-
-* Signup: https://api.data.gov/signup/
 
 ## Example Run
 
@@ -84,6 +77,16 @@ Example searches:
 https://collections.si.edu/search/results.htm?media.CC0=true&q=&fq=place%3A%22Malaysia%22&fq=data_source%3A%22NMNH+-+Botany+Dept.%22&fq=place%3A%22Kelantan%22
 
 https://collections.si.edu/search/results.htm?q=&fq=online_visual_material%3Atrue&fq=data_source%3A%22NMNH+-+Botany+Dept.%22&fq=object_type%3A%22Isotypes%22&fq=topic%3A%22Bryopsida%22&media.CC0=true&fq=place:%22Africa%22
+
+ 
+## Caveats
+The examples here use the Smithsonian Institution Open Access API, which is hosted at Data.gov and requires use of an API key. Therefore, the code examples here will not work out of the box. They will require getting an API key (free), or you can find the DEMO_KEY from the Data.gov code examples which are free to use, but have a very low quota.
+
+Even with the full registered API key, there is a rate limit (as of 2023) of 1,000 API requests per hour which may impact the speed of ingestion depending on your working set. To avoid repeated hits against the API during a user's testing phase, the tools make extensive use of the requests-cache package, which saves the return values of requests to URLs for a number of days. This can be adjusted as needed and is best to have as a parameter from the configuration file in the future.
+
+* See: https://api.data.gov/docs/developer-manual/
+
+* Signup: https://api.data.gov/signup/
 
 ## Contact
 Andrew Lih (User:Fuzheado)
