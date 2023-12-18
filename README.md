@@ -1,11 +1,13 @@
 # Wiki API Connector
 
-This project is designed to provide a quick way to transfer image files from one repository (typically a museum/library/archive GLAM institution) to Wikimedia Commons and to work at scale.
+This project is designed to provide a quick way to transfer image files from one repository (typically a museum/library/archive GLAM institution) to Wikimedia Commons and to work at scale. 
+
+This proof of conept is specific to the Smithsonian and Wikimedia Commons files using wikitext. In theory, this same framework could be extended to create Wikidata items, or do Wikibase/Wikidata edits.
 
 ## Problem
 Donating an image (or set of images) to Wikimedia Commons is often a cumbersome process for a number of reasons:
-* Metadata and modeling - It requires a deep understanding of the metadata of the data set, which may work for a one-time upload. Spreadsheet tools such as OpenRefine and Google Sheets may help for one-time load of data for a given session, but they usually are usually a poor fit for long-term repeated use. 
-* Wikimedia experience - Users need to know quite a bit about Wikimedia templates, copyright, categories, and file naming before they can contribute.
+* Metadata and modeling - This requires a deep understanding of the metadata of the data set, which the user typically wants to work with over time. Spreadsheet tools such as OpenRefine and Google Sheets may help for one-time load of data for a given session, but they are usually a poor fit for long-term repeated use, or sharing a best practice with others is difficult.
+* Wikimedia experience - Users need to know the intricacies of Wikimedia Commons templates, copyright, categories, and file naming before they can contribute.
 * Working at scale - Even if one image can be uploaded, scaling it to dozens or hundreds of images is hard, requiring knowledge of API rate limits or categorization issues.
 * Technical - Supporting an upload of large size and complexity requires quite a bit of technical expertise in scripting with Python or other tools.
 
@@ -53,6 +55,14 @@ By default, the script places all uploads into a category called "Category:Wiki 
 
 * Critical files
     * config.yml - YAML file with crosswalk mappings and definition of "units," as in institutional units of a museum and library
+ 
+## Caveats
+The examples here use the Smithsonian Institution Open Access API, which is hosted at Data.gov and requires use of an API key. Therefore, the code examples here will not work out of the box. They will require getting an API key (free), or you can find the DEMO_KEY from the Data.gov code examples which are free to use, but have a very low quota.
+
+* See: https://api.data.gov/docs/developer-manual/
+
+* Signup: https://api.data.gov/signup/
+
 ## Example Run
 
 > python si-collections-search-dumper.py \\\
